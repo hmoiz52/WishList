@@ -17,6 +17,11 @@ namespace UserBooksList.Tests
         }
 
         [TestMethod]
+        public void AddBookToUsersWishList_UserNotExists_ReturnNotFound()
+        {
+        }
+
+        [TestMethod]
         public void AddBookToUsersWishList_RecordExists_ReturnConflict()
         {
         }
@@ -27,7 +32,7 @@ namespace UserBooksList.Tests
         }
 
         [TestMethod]
-        public void DeleteBookFromUsersWishList_RecordnotExists_ReturnNotFound()
+        public void DeleteBookFromUsersWishList_RecordNotExists_ReturnNotFound()
         {
         }
 
@@ -38,6 +43,11 @@ namespace UserBooksList.Tests
 
         [TestMethod]
         public void UpdateBookInUsersWishList_BookNotExists_ReturnNotFound()
+        {
+        }
+
+        [TestMethod]
+        public void UpdateBookInUsersWishList_RecordNotExists_ReturnNotFound()
         {
         }
     }

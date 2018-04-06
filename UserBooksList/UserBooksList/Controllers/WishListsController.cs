@@ -54,18 +54,12 @@ namespace UserBooksList.Controllers
 
                 db.WishLists.Remove(record);
                 db.WishLists.Add(wishList);
+
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (WishListExists(wishList.UserId, wishList.BookId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                throw new NotImplementedException();
             }
 
             return StatusCode(HttpStatusCode.NoContent);
@@ -86,7 +80,7 @@ namespace UserBooksList.Controllers
                 return BadRequest();
             }
 
-            if (!BookExists(wishList.BookId))
+            if (!UserExists(wishList.UserId) || !BookExists(wishList.BookId))
             {
                 return NotFound();
             }
