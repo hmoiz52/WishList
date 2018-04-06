@@ -43,18 +43,17 @@ namespace UserBooksList.Controllers
                 return NotFound();
             }
 
+            WishList record = await db.WishLists.FindAsync(userId, bookId);
+
+            if (record == null)
+            {
+                return NotFound();
+            }
+
             try
             {
-                WishList record = await db.WishLists.FindAsync(userId, bookId);
-
-                if (record == null)
-                {
-                    return NotFound();
-                }
-
-                db.WishLists.Remove(record);
-                db.WishLists.Add(wishList);
-
+                record.BookId = wishList.BookId;
+                db.Entry(record).State = EntityState.Modified;
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateException)
