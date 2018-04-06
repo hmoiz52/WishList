@@ -70,11 +70,11 @@ namespace UserBooksList.Controllers
                 }
                 else
                 {
-                    throw;
+                    throw new NotImplementedException();
                 }
             }
 
-            return StatusCode(HttpStatusCode.Created);
+            return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/Users

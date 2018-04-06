@@ -69,7 +69,7 @@ namespace UserBooksList.Controllers
                 }
                 else
                 {
-                    throw;
+                    throw new NotImplementedException();
                 }
             }
 

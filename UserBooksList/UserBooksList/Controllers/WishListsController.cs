@@ -15,106 +15,118 @@ namespace UserBooksList.Controllers
 {
     public class WishListsController : ApiController
     {
-        private UserBooksListContext db = new UserBooksListContext();
+        private UserBooksListContext db;
 
-        // GET: api/WishLists
-        public IQueryable<WishList> GetWishLists()
+        public WishListsController()
         {
-            return db.WishLists;
+            db = new UserBooksListContext();
+            db.Configuration.ProxyCreationEnabled = false;
         }
 
-        // GET: api/WishLists/5
+        // POST: api/users/1/wishlist/1
         [ResponseType(typeof(WishList))]
-        public async Task<IHttpActionResult> GetWishList(int id)
-        {
-            WishList wishList = await db.WishLists.FindAsync(id);
-            if (wishList == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(wishList);
-        }
-
-        // PUT: api/WishLists/5
-        [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutWishList(int id, WishList wishList)
+        [Route("api/users/{userId}/wishlist/{bookId}", Name = "UpdateBookInWishList")]
+        public async Task<IHttpActionResult> UpdateBookInWishList(int userId, int bookId, WishList wishList)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != wishList.UserId)
+            if (userId != wishList.UserId)
             {
                 return BadRequest();
             }
 
-            db.Entry(wishList).State = EntityState.Modified;
+            if (!BookExists(wishList.BookId))
+            {
+                return NotFound();
+            }
 
             try
             {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!WishListExists(id))
+                WishList record = await db.WishLists.FindAsync(userId, bookId);
+
+                if (record == null)
                 {
                     return NotFound();
                 }
+
+                db.WishLists.Remove(record);
+                db.WishLists.Add(wishList);
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (WishListExists(wishList.UserId, wishList.BookId))
+                {
+                    return Conflict();
+                }
                 else
                 {
-                    throw;
+                    throw new NotImplementedException();
                 }
             }
 
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/WishLists
+        // POST: api/users/1/wishlist
         [ResponseType(typeof(WishList))]
-        public async Task<IHttpActionResult> PostWishList(WishList wishList)
+        [Route("api/users/{userId}/wishlist", Name = "AddBookInUsersWishList")]
+        public async Task<IHttpActionResult> AddBookInUsersWishList(int userId, WishList wishList)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.WishLists.Add(wishList);
+            if (userId != wishList.UserId)
+            {
+                return BadRequest();
+            }
+
+            if (!BookExists(wishList.BookId))
+            {
+                return NotFound();
+            }
 
             try
             {
+                db.WishLists.Add(wishList);
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (WishListExists(wishList.UserId))
+                if (WishListExists(wishList.UserId, wishList.BookId))
                 {
                     return Conflict();
                 }
                 else
                 {
-                    throw;
+                    throw new NotImplementedException();
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = wishList.UserId }, wishList);
+            return CreatedAtRoute("AddBookInUsersWishList", new { id = wishList.UserId }, wishList);
         }
 
-        // DELETE: api/WishLists/5
+        // DELETE: api/users/5/wishlist/1
         [ResponseType(typeof(WishList))]
-        public async Task<IHttpActionResult> DeleteWishList(int id)
+        [Route("api/users/{userId}/wishlist/{bookId}", Name = "DeleteBookFromWishList")]
+        public async Task<IHttpActionResult> DeleteBookFromWishList(int userId, int bookId)
         {
-            WishList wishList = await db.WishLists.FindAsync(id);
-            if (wishList == null)
+            var record = await db.WishLists.FindAsync(userId, bookId);
+
+            if (record == null)
             {
                 return NotFound();
             }
 
-            db.WishLists.Remove(wishList);
+            db.WishLists.Remove(record);
             await db.SaveChangesAsync();
 
-            return Ok(wishList);
+            return Ok(record);
         }
 
         protected override void Dispose(bool disposing)
@@ -126,9 +138,19 @@ namespace UserBooksList.Controllers
             base.Dispose(disposing);
         }
 
-        private bool WishListExists(int id)
+        private bool UserExists(int userId)
         {
-            return db.WishLists.Count(e => e.UserId == id) > 0;
+            return db.Users.Count(e => e.UserId == userId) > 0;
+        }
+
+        private bool BookExists(int bookId)
+        {
+            return db.Books.Count(e => e.BookId == bookId) > 0;
+        }
+
+        private bool WishListExists(int userId,int bookId)
+        {
+            return db.WishLists.Count(e => e.BookId == bookId && e.UserId == userId) > 0;
         }
     }
 }

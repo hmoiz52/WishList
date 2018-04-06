@@ -22,6 +22,7 @@ namespace UserBooksList.Models
         [Required]
         public string ISBN { get; set; }
 
+        [Required]
         public DateTime DateOfPublication { get; set; }
     }
 }
